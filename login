@@ -1,14 +1,19 @@
-import re
-import string
+import requests
 import streamlit as st
 import time
 import subprocess
+import bcrypt
 
 
-
+ip = requests.get('http://checkip.amazonaws.com').text.strip()
+print("Hola, he entrado  a tu página, mi IP es: {}".format(ip))
 
 users = ['Pablo', 'Pepe', 'Jairo']
-passwords = {'Pablo': "HnKWYGvA6pCKpO3Kbz", 'Pepe': ",", 'Jairo': ","}
+password = "HnKWYGvA6pCKpO3Kbz"
+salt = bcrypt.gensalt()
+
+hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+
 
 # Titulo
 title = 'LOGIN'
@@ -30,16 +35,18 @@ name = st.text_input("Introduce tu nombre", key='-01-')
 # Contraseña
 input_password = st.text_input('Introduce tu contraseña', "", type='password')
 
+col1, col2 = st.columns(2, gap='large')
+
 # Boton
-if st.button('Log in'):
-    print('Intento de login hecho con estas credenciales: P:{} | U:{} '.format(input_password, name))
+if col1.button('Log in'):
+    print('Intento de login hecho con estas credenciales: P:{} | U:{} | IP: {}'.format(input_password, name, ip))
 
     if name == "":
         st.error("No has introduccido un nombre válido. \nSolo se aceptan letras, no simbolos.")
 
     else:
         if name in users:
-            if input_password == passwords[name]:
+            if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
                 st.success("Has iniciado sesión correctamente, redirigiendo de forma segura...")
                 bar = st.progress(0)
 
@@ -48,7 +55,8 @@ if st.button('Log in'):
                     bar.progress(progres, text='Redirection progress')
                 try:
                     subprocess.Popen(['streamlit', 'run', 'chat.py'])
-                except FileNotFoundError:
+                    print("Accediendo al chat..")
+                except:
                     st.error("Ha ocurrido un error...")
             else:
                 if input_password == "":
@@ -59,8 +67,8 @@ if st.button('Log in'):
         else:
             st.error('Usuario no encontrado')
 
-elif st.button('Registrarse'):
-    subprocess.Popen(['streamlit', 'run', 'register.py'])
+elif col2.button('Acerca de CHAT SEGURO '):
+    subprocess.Popen(['streamlit', 'run', 'Acerca.py'])
 
 else:
     st.write("")
